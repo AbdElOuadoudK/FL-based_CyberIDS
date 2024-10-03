@@ -10,8 +10,8 @@ By @Ouadoud
 from pandas import DataFrame
 import numpy
 from flwr.server import start_server, ServerConfig
+from flwr.simulation import start_simulation
 from .globals import WEIGHTS, NUM_CLIENTS, LOGS_PATH, NUM_CORES
-from .utils import global_evaluate, log_fit_metrics, log_eval_metrics, fit_config
 from .aggregation import Aggregation
 from os import path, listdir
 import torch
@@ -60,17 +60,32 @@ class Server_Algorithm:
         history = start_server(
             server_address=f"{server_address}:{port}",
             config=ServerConfig(num_rounds=self.num_rounds),
-            strategy=Aggregation(
-                min_fit_clients=NUM_CLIENTS,
-                min_evaluate_clients=NUM_CLIENTS,
-                min_available_clients=NUM_CLIENTS,
-                evaluate_fn=global_evaluate(X=self.X, y=self.y),
-                on_fit_config_fn=fit_config(self.num_rounds),
-                initial_parameters=WEIGHTS,
-                fit_metrics_aggregation_fn=log_fit_metrics,
-                evaluate_metrics_aggregation_fn=log_eval_metrics,
-            )
+            strategy=Aggregation(num_clients=NUM_CLIENTS, 
+                                 weights=WEIGHTS, 
+                                 X=self.X, y=self.y, 
+                                 num_rounds=self.num_rounds)
         )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
         print("\nEnding communication...")
 
         return history

@@ -15,8 +15,9 @@ from flwr.server.client_manager import ClientManager
 from flwr.server.strategy.fedavg import FedAvg
 from flwr.server.client_proxy import ClientProxy
 from flwr.common.typing import FitRes
-from .globals import LOGS_PATH, NUM_CORES
 import torch
+from .utils import global_evaluate, log_fit_metrics, log_eval_metrics, fit_config
+from .globals import WEIGHTS, NUM_CLIENTS, LOGS_PATH, NUM_CORES
 
 torch.set_num_threads(NUM_CORES)
 
@@ -27,6 +28,24 @@ class Aggregation(FedAvg):
     By @Ouadoud
     """
 
+    def __init__(self, 
+                 num_clients, 
+                 weights,
+                 X, y,
+                 num_rounds
+                ):
+        
+        super().__init__(
+            min_fit_clients=num_clients,
+            min_evaluate_clients=num_clients,
+            min_available_clients=num_clients,
+            evaluate_fn=global_evaluate(X, y),
+            on_fit_config_fn=fit_config(num_rounds),
+            initial_parameters=weights,
+            fit_metrics_aggregation_fn=log_fit_metrics,
+            evaluate_metrics_aggregation_fn=log_eval_metrics,
+        )
+    
     def aggregate_fit(
             self,
             server_round: int,

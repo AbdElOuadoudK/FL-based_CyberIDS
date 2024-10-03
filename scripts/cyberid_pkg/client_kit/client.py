@@ -8,7 +8,7 @@ By @Ouadoud.
 """
 
 from .inference import train_model, validate_model
-from .globals import LOGS_PATH, NUM_CORES
+from .globals import LOGS_PATH, NUM_CORES, DATA_PATH
 import torch
 from .neuralnet import NeuralNet
 from typing import List
@@ -28,12 +28,13 @@ from flwr.common import (
     parameters_to_ndarrays,
 )
 from flwr.common.logger import configure
+from .dataformat import load_train_data
 
 torch.set_num_threads(NUM_CORES)
 
-class Client(Client):
+class TrainingAgent(Client):
     """
-    Client class for federated learning.
+    TrainingAgent class for federated learning.
         
     By @Ouadoud.
     """
@@ -56,6 +57,7 @@ class Client(Client):
         
         By @Ouadoud.
         """
+        super().__init__()
         self.client_id = client_id
         self.train_loader = train_loader
         self.valid_loader = valid_loader
@@ -132,42 +134,6 @@ class Client(Client):
         status = Status(code=Code.OK, message="Success")
         return EvaluateRes(status=status, loss=float(log_entry['Loss']), num_examples=len(self.valid_loader), metrics=log_entry)
 
-class Agent_Algorithm:
-    """
-    Agent_Algorithm class to handle client initialization and communication.
 
-    By @Ouadoud.
-    """
-    def __init__(self, client_id: int, 
-                 train_loader, 
-                 valid_loader, 
-                 distribution: dict = None, 
-                 epochs: int = 1):
-        """
-        Initialize the agent with the given parameters.
 
-        Args:
-            client_id (int): Unique identifier for the client.
-            train_loader (torch.utils.data.DataLoader): DataLoader for training data.
-            valid_loader (torch.utils.data.DataLoader): DataLoader for validation data.
-            distribution (dict, optional): Distribution dictionary. Defaults to None.
-            epochs (int, optional): Number of training epochs. Defaults to 1.
-        
-        By @Ouadoud.
-        """
-        configure(identifier="IDS_Learning_Logs", filename=path.join(LOGS_PATH, f"client_{client_id}_logs.txt"))
-        self.client = Client(client_id, train_loader, valid_loader, distribution, epochs)
-    
-    def __call__(self, server_address: str = '127.0.0.1', port: int = 1234):
-        """
-        Start the client and establish communication with the server.
 
-        Args:
-            server_address (str, optional): Server address. Defaults to '127.0.0.1'.
-            port (int, optional): Server port. Defaults to 1234.
-        
-        By @Ouadoud.
-        """
-        print("\nStarting communication...")
-        start_client(server_address=f"{server_address}:{port}", client=self.client)
-        print("Ending communication...\n")
