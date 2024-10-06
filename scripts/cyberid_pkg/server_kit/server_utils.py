@@ -1,3 +1,4 @@
+
 """
 Utility functions for federated learning logging and evaluation.
 
@@ -11,9 +12,9 @@ from os import path, listdir
 from typing import List, Dict, Optional, Tuple
 from pandas import DataFrame
 from flwr.common import NDArrays, Scalar
-from .globals import LOGS_PATH, BATCH_SIZE, GLOBALMODEL
-from .inference import test_model
-from .dataformat import load_test_data
+from ..globals import LOGS_PATH, BATCH_SIZE, GLOBALMODEL
+from ..inference import test_model
+from ..dataformat import load_test_data
 
 def log_fit_metrics(metrics: List[Tuple[int, Dict[str, float]]]) -> Dict[str, float]:
     """
@@ -147,10 +148,9 @@ def fit_config(rounds: int):
     def _fit_config(server_round: int):
         """Return training configuration dict for each round."""
         nonlocal rounds
-        config = {"round": server_round}
         
-        if server_round == 1:
-            config.update({"public_key": 123, "rounds": rounds})
+        #if server_round == 1:
+        config = {"public_key": 123, "rounds": rounds, "round": server_round}
         
         return config
     
