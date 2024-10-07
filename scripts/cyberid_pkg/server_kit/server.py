@@ -8,16 +8,14 @@ initializing the server, and starting the training rounds.
 By @Ouadoud
 """
 
-from pandas import DataFrame
-import numpy
+from numpy import ndarray
 from flwr.server import start_server, ServerConfig
 from flwr.simulation import start_simulation
 from ..globals import WEIGHTS, NUM_CLIENTS, LOGS_PATH, NUM_CORES
 from .aggregation import Aggregation
-from os import path, listdir
-import torch
+from torch import set_num_threads
 
-torch.set_num_threads(NUM_CORES)
+set_num_threads(NUM_CORES)
 
 class Server_Algorithm:
     """
@@ -29,7 +27,7 @@ class Server_Algorithm:
     By @Ouadoud
     """
     
-    def __init__(self, X: numpy.ndarray, y: numpy.ndarray, num_rounds: int):
+    def __init__(self, X: ndarray, y: ndarray, num_rounds: int):
         """
         Initialize the server algorithm with data and configuration.
 

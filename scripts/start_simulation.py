@@ -1,6 +1,6 @@
 from cyberid_pkg.globals import DATA_PATH, NUM_CLIENTS, WEIGHTS, NUM_CORES, NUM_ROUNDS, NUM_EPOCHS
 from pandas import read_feather
-from path import join
+from os.path import join
 from cyberid_pkg.client_kit import generate_client_fn
 from cyberid_pkg.server_kit import Aggregation
 from flwr.server import ServerConfig
@@ -42,7 +42,6 @@ def run(logs=True, display=True):
                                client_resources=client_resources,
                                config=server_config,
                                strategy=aggregation_strategy,
-                               ray_init_args=ray_init_args
                               )
 
 if __name__ == "start_simulation" :

@@ -8,7 +8,8 @@ evaluate the global model on test data.
 By @Ouadoud
 """
 
-from os import path, listdir
+from os import listdir
+from os.path import join
 from typing import List, Dict, Optional, Tuple
 from pandas import DataFrame
 from flwr.common import NDArrays, Scalar
@@ -42,7 +43,7 @@ def log_fit_metrics(metrics: List[Tuple[int, Dict[str, float]]]) -> Dict[str, fl
 
 
 
-    logs_path = path.join(LOGS_PATH, "train_logs.csv")
+    logs_path = join(LOGS_PATH, "train_logs.csv")
     if "train_logs.csv" in listdir(LOGS_PATH):
         DataFrame([metrics_list], columns=metrics_cols).to_csv(logs_path, header=False, index=False, mode='a')
     else:
@@ -86,7 +87,7 @@ def log_eval_metrics(metrics: List[Tuple[int, Dict[str, float]]]) -> Dict[str, f
     metrics_list = [valid_accuracy, valid_precision, valid_recall, valid_f1, valid_fpr, valid_loss]
     metrics_cols = ["Accuracy", "Precision", "Recall", "F1", "FPR", "Loss"]
     
-    logs_path = path.join(LOGS_PATH, "valid_logs.csv")
+    logs_path = join(LOGS_PATH, "valid_logs.csv")
     if "valid_logs.csv" in listdir(LOGS_PATH):
         DataFrame([metrics_list], columns=metrics_cols).to_csv(logs_path, header=False, index=False, mode='a')
     else:
@@ -134,7 +135,7 @@ def global_evaluate(X: NDArrays, y: NDArrays):
         # Print centralized testing metrics
         print(f"Test performance of global model: Loss: {loss} | Accuracy: {accuracy}")
             
-        logs_path = path.join(LOGS_PATH, "test_logs.csv")
+        logs_path = join(LOGS_PATH, "test_logs.csv")
         if "test_logs.csv" in listdir(LOGS_PATH):
             DataFrame([log_entry]).to_csv(logs_path, header=False, index=False, mode='a')
         else:

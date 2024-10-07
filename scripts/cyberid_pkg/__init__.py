@@ -1,5 +1,4 @@
-from os import environ
-environ["RAY_DEDUP_LOGS_ALLOW_REGEX"] = r"Training\s>>\sEpoch:\s\d+\s\|\sLoss:\s[\d\.e+-]+\s\|\sAccuracy:\s[\d\.]+ %"
+
 """
 Initialization module for the federated learning project.
 
@@ -10,15 +9,18 @@ and global variables.
 By @Ouadoud
 """
 
+from os import environ
+environ["RAY_DEDUP_LOGS_ALLOW_REGEX"] = r"Training\s>>\sEpoch:\s\d+\s\|\sLoss:\s[\d\.e+-]+\s\|\sAccuracy:\s[\d\.]+ %"
+
 import warnings
 import logging
-from os import path
+from os.path import join
 from flwr.common.logger import configure
 from .dataformat import TrainDataset, load_test_data, TestDataset, load_train_data
 from .neuralnet import NeuralNet
 from .inference import  train_model, validate_model, test_model
 from .server_kit.server import Server_Algorithm
-import torch
+from torch import set_num_threads
 from .client_kit.client import TrainingAgent #, Agent_Algorithm
 from .globals import (
     NUM_CLIENTS,
@@ -32,10 +34,10 @@ from .globals import (
     LOAD_TRAIN_DATA_KWARGS
 )
 
-torch.set_num_threads(NUM_CORES)
+set_num_threads(NUM_CORES)
 
 # Configure logger for the project
-configure(identifier="FLProjectExperiment", filename=path.join(LOGS_PATH, "server_logs.txt"))
+configure(identifier="FLProjectExperiment", filename=join(LOGS_PATH, "server_logs.txt"))
 
 # Suppress warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)

@@ -8,13 +8,11 @@ It includes the client class and related methods for training, evaluation, and c
 By @Ouadoud.
 """
 
-from ..inference import train_model, validate_model
-from ..globals import LOGS_PATH, NUM_CORES, DATA_PATH
-import torch
-from ..neuralnet import NeuralNet
+
+from torch import set_num_threads
 from typing import List
-from os import path
-import numpy
+from os.path import join
+from numpy import savez
 from flwr.client import Client, start_client
 from flwr.common import (
     Code,
@@ -28,9 +26,12 @@ from flwr.common import (
     ndarrays_to_parameters,
     parameters_to_ndarrays,
 )
+from ..neuralnet import NeuralNet
+from ..inference import train_model, validate_model
+from ..globals import LOGS_PATH, NUM_CORES, DATA_PATH
 from ..dataformat import load_train_data
 
-torch.set_num_threads(NUM_CORES)
+set_num_threads(NUM_CORES)
 
 class TrainingAgent(Client):
     """
@@ -78,8 +79,8 @@ class TrainingAgent(Client):
         By @Ouadoud.
         """
         parameters = self.__model.get_parameters()
-        logs_path = path.join(LOGS_PATH, "local_weights.npz")
-        numpy.savez(logs_path, *parameters)
+        logs_path = join(LOGS_PATH, "local_weights.npz")
+        savez(logs_path, *parameters)
         parameters = ndarrays_to_parameters(parameters)
         status = Status(code=Code.OK, message="Success")
         return GetParametersRes(status=status, parameters=parameters)
