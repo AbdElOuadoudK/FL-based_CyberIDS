@@ -1,3 +1,4 @@
+
 """
 Neural network model definition for classification.
 
@@ -9,10 +10,11 @@ By @Ouadoud
 
 from collections import OrderedDict
 from typing import List
-import torch
-import numpy
+from torch import set_num_threads, Tensor, tensor
+from torch.nn import Module, Sequential, Linear, BatchNorm1d, ReLU, Dropout, Sigmoid
+from numpy import ndarray
 
-class NeuralNet(torch.nn.Module):
+class NeuralNet(Module):
     """
     A simple neural network model for classification.
 
@@ -27,26 +29,26 @@ class NeuralNet(torch.nn.Module):
         
         By @Ouadoud.
         """
-        torch.set_num_threads(num_cores)
+        set_num_threads(num_cores)
         super(NeuralNet, self).__init__()
-        self.sequential = torch.nn.Sequential(
-            torch.nn.Linear(50, 64),
-            torch.nn.BatchNorm1d(64),
-            torch.nn.ReLU(),
-            torch.nn.Dropout(p=0.25),
-            torch.nn.Linear(64, 32),
-            torch.nn.BatchNorm1d(32),
-            torch.nn.ReLU(),
-            torch.nn.Dropout(p=0.25),
-            torch.nn.Linear(32, 16),
-            torch.nn.BatchNorm1d(16),
-            torch.nn.ReLU(),
-            torch.nn.Dropout(p=0.25),
-            torch.nn.Linear(16, 1),
-            torch.nn.Sigmoid(),
+        self.sequential = Sequential(
+            Linear(50, 64),
+            BatchNorm1d(64),
+            ReLU(),
+            Dropout(p=0.25),
+            Linear(64, 32),
+            BatchNorm1d(32),
+            ReLU(),
+            Dropout(p=0.25),
+            Linear(32, 16),
+            BatchNorm1d(16),
+            ReLU(),
+            Dropout(p=0.25),
+            Linear(16, 1),
+            Sigmoid(),
         )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: Tensor) -> Tensor:
         """
         Forward pass through the network.
         
@@ -60,7 +62,7 @@ class NeuralNet(torch.nn.Module):
         """
         return self.sequential(x)
 
-    def get_parameters(self) -> List[numpy.ndarray]:
+    def get_parameters(self) -> List[ndarray]:
         """
         Get the parameters of the network as a list of numpy arrays.
 
@@ -71,7 +73,7 @@ class NeuralNet(torch.nn.Module):
         """
         return [val.cpu().numpy() for _, val in self.state_dict().items()]
     
-    def set_parameters(self, parameters: List[numpy.ndarray]) -> None:
+    def set_parameters(self, parameters: List[ndarray]) -> None:
         """
         Set the parameters of the network from a list of numpy arrays.
 
@@ -81,5 +83,8 @@ class NeuralNet(torch.nn.Module):
         By @Ouadoud.
         """
         params_dict = zip(self.state_dict().keys(), parameters)
-        state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
+        state_dict = OrderedDict({k: tensor(v) for k, v in params_dict})
         self.load_state_dict(state_dict, strict=True)
+
+    def _save_model(self):
+        pass

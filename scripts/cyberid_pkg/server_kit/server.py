@@ -1,3 +1,4 @@
+
 """
 Server module for federated learning setup and execution.
 
@@ -7,16 +8,14 @@ initializing the server, and starting the training rounds.
 By @Ouadoud
 """
 
-from pandas import DataFrame
-import numpy
+from numpy import ndarray
 from flwr.server import start_server, ServerConfig
 from flwr.simulation import start_simulation
-from .globals import WEIGHTS, NUM_CLIENTS, LOGS_PATH, NUM_CORES
+from ..globals import WEIGHTS, NUM_CLIENTS, LOGS_PATH, NUM_CORES
 from .aggregation import Aggregation
-from os import path, listdir
-import torch
+from torch import set_num_threads
 
-torch.set_num_threads(NUM_CORES)
+set_num_threads(NUM_CORES)
 
 class Server_Algorithm:
     """
@@ -28,7 +27,7 @@ class Server_Algorithm:
     By @Ouadoud
     """
     
-    def __init__(self, X: numpy.ndarray, y: numpy.ndarray, num_rounds: int):
+    def __init__(self, X: ndarray, y: ndarray, num_rounds: int):
         """
         Initialize the server algorithm with data and configuration.
 
@@ -43,7 +42,7 @@ class Server_Algorithm:
         self.X = X
         self.y = y
         
-    def __call__(self, server_address: str = '127.0.0.1', port: int = 1234) -> dict:
+    def __call__(self) -> dict: #, server_address: str = '127.0.0.1', port: int = 1234
         """
         Start the federated learning server and begin training rounds.
 
@@ -57,8 +56,9 @@ class Server_Algorithm:
         By @Ouadoud
         """
         print("\nStarting communication...")
+                
         history = start_server(
-            server_address=f"{server_address}:{port}",
+            #server_address=f"{server_address}:{port}",
             config=ServerConfig(num_rounds=self.num_rounds),
             strategy=Aggregation(num_clients=NUM_CLIENTS, 
                                  weights=WEIGHTS, 

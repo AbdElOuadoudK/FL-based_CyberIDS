@@ -1,3 +1,4 @@
+
 """
 Initialization module for the federated learning project.
 
@@ -8,16 +9,19 @@ and global variables.
 By @Ouadoud
 """
 
+from os import environ
+environ["RAY_DEDUP_LOGS_ALLOW_REGEX"] = r"Training\s>>\sEpoch:\s\d+\s\|\sLoss:\s[\d\.e+-]+\s\|\sAccuracy:\s[\d\.]+ %"
+
 import warnings
 import logging
-from os import path
+from os.path import join
 from flwr.common.logger import configure
 from .dataformat import TrainDataset, load_test_data, TestDataset, load_train_data
 from .neuralnet import NeuralNet
 from .inference import  train_model, validate_model, test_model
-from .server import Server_Algorithm
-import torch
-from .client import Client, Agent_Algorithm
+from .server_kit.server import Server_Algorithm
+from torch import set_num_threads
+from .client_kit.client import TrainingAgent #, Agent_Algorithm
 from .globals import (
     NUM_CLIENTS,
     BATCH_SIZE,
@@ -30,17 +34,17 @@ from .globals import (
     LOAD_TRAIN_DATA_KWARGS
 )
 
-torch.set_num_threads(NUM_CORES)
+set_num_threads(NUM_CORES)
 
 # Configure logger for the project
-configure(identifier="FLProjectExperiment", filename=path.join(LOGS_PATH, "server_logs.txt"))
+configure(identifier="FLProjectExperiment", filename=join(LOGS_PATH, "server_logs.txt"))
 
 # Suppress warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=DeprecationWarning)
 
 # Disable INFO-level logging
-logging.disable(logging.INFO)
+#logging.disable(logging.INFO)
 
 # Exported symbols
 __all__ = [
@@ -61,7 +65,7 @@ __all__ = [
     "load_train_data",
     "train_model",
     "validate_model",
-    "Client",
+    "TrainingAgent",
     "Agent_Algorithm",
     "LOAD_TRAIN_DATA_KWARGS",
 ]

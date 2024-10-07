@@ -1,3 +1,4 @@
+
 """
 inference.py
 
@@ -6,22 +7,25 @@ This module provides functions for training and testing a neural network model u
 By @Ouadoud.
 """
 
-import torch
+from typing import Tuple
+from torch import set_num_threads, float32, no_grad
+from torch.nn import BCELoss, Module
+from torch.utils.data import DataLoader
+from torch.optim import SGD
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-import numpy
+from os import listdir
+from os.path import join
 from pandas import DataFrame
-from matplotlib import pyplot, cm
-from matplotlib.ticker import FuncFormatter
-from matplotlib.colors import Normalize
-from os import path, listdir
-from .globals import DEVICE, LOGS_PATH, NUM_CORES
+from .globals import GLOBALMODEL, DEVICE, LOGS_PATH, NUM_CORES
 
-torch.set_num_threads(NUM_CORES)
 
-loss_function = torch.nn.BCELoss()
 
-def _train(model: torch.nn.Module,
-           train_loader: torch.utils.data.DataLoader,
+set_num_threads(NUM_CORES)
+
+loss_function = BCELoss()
+
+def _train(model: Module,
+           train_loader: DataLoader,
            epochs: int = 3) -> tuple:
     """
     Train the neural network model.
@@ -36,7 +40,7 @@ def _train(model: torch.nn.Module,
         
     By @Ouadoud.
     """
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.0001, momentum=0.9)
+    optimizer = SGD(model.parameters(), lr=0.0001, momentum=0.9)
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=5e-2, patience=2)
     
     train_loader.dataset.is_train = True    
@@ -45,7 +49,7 @@ def _train(model: torch.nn.Module,
         tp, tn, fp, fn = 0, 0, 0, 0
         model.train()
         for items, targets in train_loader:
-            items = items.to(torch.float32).to(DEVICE)
+            items = items.to(float32).to(DEVICE)
             optimizer.zero_grad()
             outputs = model(items)
             loss = loss_function(outputs, targets)
@@ -65,11 +69,11 @@ def _train(model: torch.nn.Module,
         
         yield epoch, train_loss, tp, tn, fp, fn
 
-def train(round: int,
+def train_model(round: int,
           rounds: int,
           client_id: int,
-          model: torch.nn.Module,
-          train_loader: torch.utils.data.DataLoader,
+          model: Module,
+          train_loader: DataLoader,
           epochs: int = 3) -> tuple:
     """
     Main function to train the model and visualize the training process.
@@ -88,7 +92,7 @@ def train(round: int,
     By @Ouadoud.
     """
     print(f'\nRound: {round}')
-    logs_path = path.join(LOGS_PATH, f"client_{client_id}_logs.txt")
+    logs_path = join(LOGS_PATH, f"client_{client_id}_logs.txt")
     with open(logs_path, 'a') as file:
         file.write(f'\nRound: {round}')
     
@@ -117,7 +121,7 @@ def train(round: int,
         with open(logs_path, 'a') as file:
             file.write(f"\nTraining >> Epoch: {epoch+1} | Loss: {train_loss} | Accuracy: {train_accuracy}")
     
-    logs_path = path.join(LOGS_PATH, f"train_{client_id}_logs.csv")
+    logs_path = join(LOGS_PATH, f"train_{client_id}_logs.csv")
     if f"train_{client_id}_logs.csv" in listdir(LOGS_PATH):
         DataFrame(logs).to_csv(logs_path, header=False, index=False, mode='a')
     else:
@@ -126,8 +130,8 @@ def train(round: int,
     del log_entry['Epoch']
     return model, log_entry
 
-def validate_model(model: torch.nn.Module, 
-         valid_loader: torch.utils.data.DataLoader, 
+def validate_model(model: Module, 
+         valid_loader: DataLoader, 
          client_id: int) -> dict:
     """
     Test the neural network model.
@@ -146,9 +150,9 @@ def validate_model(model: torch.nn.Module,
     tp, tn, fp, fn = 0, 0, 0, 0
     valid_loader.dataset.is_train = False
     model.eval()
-    with torch.no_grad():
+    with no_grad():
         for items, targets in valid_loader:
-            items = items.to(torch.float32).to(DEVICE)
+            items = items.to(float32).to(DEVICE)
             outputs = model(items)
             loss += loss_function(outputs, targets).item()
             
@@ -178,11 +182,11 @@ def validate_model(model: torch.nn.Module,
     accuracy = "{:.4f} %".format(valid_accuracy * 100)
     
     print(f"Validation >> Loss: {loss} | Accuracy: {accuracy}")
-    logs_path = path.join(LOGS_PATH, f"client_{client_id}_logs.txt")
+    logs_path = join(LOGS_PATH, f"client_{client_id}_logs.txt")
     with open(logs_path, 'a') as file:
         file.write(f"\nValidation >> Loss: {valid_loss} | Accuracy: {valid_accuracy}")
     
-    logs_path = path.join(LOGS_PATH, f"valid_{client_id}_logs.csv")
+    logs_path = join(LOGS_PATH, f"valid_{client_id}_logs.csv")
     if f"valid_{client_id}_logs.csv" in listdir(LOGS_PATH):
         DataFrame([log_entry]).to_csv(logs_path, header=False, index=False, mode='a')
     else:
@@ -201,17 +205,11 @@ This module provides functions for testing a neural network model and calculatin
 By @Ouadoud
 """
 
-from torch import nn, no_grad, float32
-import numpy
-from typing import Tuple
-from .globals import GLOBALMODEL, DEVICE, NUM_CORES
-import torch
 
-# Set the number of CPU threads to use
-torch.set_num_threads(NUM_CORES)
+
 
 # Define the binary cross-entropy loss function
-loss_function = nn.BCELoss()
+loss_function = BCELoss()
 
 def test_model(test_loader) -> dict:
     """

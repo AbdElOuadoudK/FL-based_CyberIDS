@@ -1,3 +1,4 @@
+
 """
 dataformat.py
 
@@ -8,13 +9,11 @@ By @Ouadoud.
 """
 
 from typing import Tuple, List
-import numpy, pandas
+from numpy import ndarray
+from pandas import DataFrame
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
 from .globals import NUM_CORES
-import torch
-
-torch.set_num_threads(NUM_CORES)
 
 class TrainDataset(Dataset):
     """
@@ -39,16 +38,16 @@ class TrainDataset(Dataset):
     By @Ouadoud.
     """
     def __init__(self,
-                 x: numpy.ndarray,
-                 y: numpy.ndarray,
+                 x: ndarray,
+                 y: ndarray,
                  y_columns: List[str],
                  size: float,
                  valid_rate: float,
                  distribution: dict = None,
                  sparse_y: bool = True
                 ):
-        x = pandas.DataFrame(x)
-        y = pandas.DataFrame(y, columns=y_columns)
+        x = DataFrame(x)
+        y = DataFrame(y, columns=y_columns)
         self.is_train = True
         
         if distribution is None:
@@ -85,7 +84,7 @@ class TrainDataset(Dataset):
         else:
             return self.y_valid.shape[0]
 
-    def __getitem__(self, idx: int) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    def __getitem__(self, idx: int) -> Tuple[ndarray, ndarray]:
         """
         Get a sample from the dataset by index.
 
@@ -102,7 +101,7 @@ class TrainDataset(Dataset):
         else:
             return self.x_valid.values[idx], self.y_valid.values[idx]
 
-def load_train_data(data: Tuple[pandas.DataFrame, pandas.DataFrame] = None,
+def load_train_data(data: Tuple[DataFrame, DataFrame] = None,
                     size: float = 1.0,
                     valid_rate: float = 0.5,
                     batch_size: int = 1024,
@@ -149,7 +148,7 @@ class TestDataset(Dataset):
 
     By @Ouadoud
     """
-    def __init__(self, x: numpy.ndarray, y: numpy.ndarray):
+    def __init__(self, x: ndarray, y: ndarray):
         """
         Initialize the dataset with input and target data.
 
@@ -173,7 +172,7 @@ class TestDataset(Dataset):
         """
         return self.y.shape[0]
     
-    def __getitem__(self, idx: int) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    def __getitem__(self, idx: int) -> Tuple[ndarray, ndarray]:
         """
         Get a sample from the dataset by index.
 
@@ -187,7 +186,7 @@ class TestDataset(Dataset):
         """
         return self.x[idx], self.y[idx]
 
-def load_test_data(data: Tuple[pandas.DataFrame, pandas.DataFrame] = None, batch_size: int = 1024) -> DataLoader:
+def load_test_data(data: Tuple[DataFrame, DataFrame] = None, batch_size: int = 1024) -> DataLoader:
     """
     Load test data into a DataLoader.
 
