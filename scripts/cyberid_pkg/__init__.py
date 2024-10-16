@@ -10,15 +10,12 @@ By @Ouadoud
 """
 
 from os import environ
-environ["RAY_DEDUP_LOGS_ALLOW_REGEX"] = r"Training\s>>\sEpoch:\s\d+\s\|\sLoss:\s[\d\.e+-]+\s\|\sAccuracy:\s[\d\.]+ %"
-
-import warnings
-import logging
-from os.path import join
-from flwr.common.logger import configure
+environ["RAY_DEDUP_LOGS"] = "0"
+environ["RAY_COLOR_PREFIX"] = "1"
+from warnings import simplefilter
 from .dataformat import TrainDataset, load_test_data, TestDataset, load_train_data
-from .neuralnet import NeuralNet
-from .inference import  train_model, validate_model, test_model
+#from .neuralnet import NeuralNet
+from .learning_kit.inference import  train_model, validate_model, test_model
 from .server_kit.server import Server_Algorithm
 from torch import set_num_threads
 from .client_kit.client import TrainingAgent #, Agent_Algorithm
@@ -34,17 +31,12 @@ from .globals import (
     LOAD_TRAIN_DATA_KWARGS
 )
 
-set_num_threads(NUM_CORES)
-
-# Configure logger for the project
-configure(identifier="FLProjectExperiment", filename=join(LOGS_PATH, "server_logs.txt"))
 
 # Suppress warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
-warnings.simplefilter(action='ignore', category=DeprecationWarning)
+simplefilter(action='ignore', category=FutureWarning)
+simplefilter(action='ignore', category=DeprecationWarning)
 
-# Disable INFO-level logging
-#logging.disable(logging.INFO)
+
 
 # Exported symbols
 __all__ = [

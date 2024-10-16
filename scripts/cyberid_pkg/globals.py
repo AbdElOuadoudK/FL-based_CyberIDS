@@ -5,9 +5,9 @@ This module defines global constants, configuration and sets up initialization u
 By @Ouadoud
 """
 
-from torch import cuda, device, set_num_threads
+from torch import device, set_num_threads
 from torch.cuda import is_available
-from .neuralnet import NeuralNet
+from .learning_kit.neuralnet import NeuralNet
 from numpy import load
 from os.path import join, dirname
 from os import getcwd
@@ -16,14 +16,13 @@ from os import getcwd
 NUM_CLIENTS = 2
 
 # Batch size for data loaders
-BATCH_SIZE = 8192
+BATCH_SIZE = 512
 
 # Device configuration: Use GPU if available, otherwise fallback to CPU
 DEVICE = device("cuda" if is_available() else "cpu")
 
 # Number of CPU cores to use for threading
-NUM_CORES = 1
-set_num_threads(NUM_CORES)
+NUM_CORES = .5
 
 # Initialize the global neural network model and move it to the specified device
 GLOBALMODEL = NeuralNet(NUM_CORES).to(DEVICE)

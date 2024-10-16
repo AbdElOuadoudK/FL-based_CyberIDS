@@ -12,7 +12,9 @@ By @Ouadoud.
 from torch import set_num_threads
 from typing import List
 from os.path import join
+from os import listdir
 from numpy import savez
+from pandas import DataFrame
 from flwr.client import Client, start_client
 from flwr.common import (
     Code,
@@ -26,12 +28,11 @@ from flwr.common import (
     ndarrays_to_parameters,
     parameters_to_ndarrays,
 )
-from ..neuralnet import NeuralNet
-from ..inference import train_model, validate_model
+from ..learning_kit.neuralnet import NeuralNet
+from ..learning_kit.inference import train_model, validate_model
 from ..globals import LOGS_PATH, NUM_CORES, DATA_PATH
 from ..dataformat import load_train_data
 
-set_num_threads(NUM_CORES)
 
 class TrainingAgent(Client):
     """
@@ -112,10 +113,13 @@ class TrainingAgent(Client):
         self.__rounds = ins.config.get("rounds")
 
         self.set_parameters(ins)
-        self.__model, log_entry = train_model(ins.config["round"], self.__rounds, self.client_id, self.__model, self.train_loader, self.epochs)
+        self.__model, metrics_list, metrics_dict = train_model(ins.config["round"], self.__rounds, self.client_id, self.__model, self.train_loader, self.epochs)
         parameters = ndarrays_to_parameters(self.__model.get_parameters())
         status = Status(code=Code.OK, message="Success")
-        return FitRes(status=status, parameters=parameters, num_examples=len(self.train_loader), metrics=log_entry)
+        
+        #async
+        self.__save_results(self.client_id, metrics_list, f"train_{self.client_id}_logs.csv")
+        return FitRes(status=status, parameters=parameters, num_examples=len(self.train_loader), metrics=metrics_dict)
 
     def evaluate(self, ins: EvaluateIns) -> EvaluateRes:
         """
@@ -130,25 +134,22 @@ class TrainingAgent(Client):
         By @Ouadoud.
         """
         self.set_parameters(ins)
-        log_entry = validate_model(self.__model, self.valid_loader, self.client_id)
+        metrics_dict = validate_model(self.__model, self.valid_loader, self.client_id)
         status = Status(code=Code.OK, message="Success")
-        return EvaluateRes(status=status, loss=float(log_entry['Loss']), num_examples=len(self.valid_loader), metrics=log_entry)
 
-
-
-
-
-
-
-
-
-
-
-
-
+        #async
+        self.__save_results(self.client_id, [metrics_dict], f"valid_{self.client_id}_logs.csv")
+        return EvaluateRes(status=status, loss=float(metrics_dict['BCELoss']), num_examples=len(self.valid_loader), metrics=metrics_dict)
     
-    def __save_results():
-        pass
-    def __exception_management():
+    def __save_results(self, client_id, metrics, msg):
+
+        logs_path = join(LOGS_PATH, msg)
+        if msg in listdir(LOGS_PATH):
+            DataFrame(metrics).to_csv(logs_path, header=False, index=False, mode='a')
+        else:
+            DataFrame(metrics).to_csv(logs_path, index=False, mode='w') 
+
+        
+    def __exception_management(self,):
         pass
 

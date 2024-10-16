@@ -13,7 +13,7 @@ from numpy import ndarray
 from pandas import DataFrame
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
-from .globals import NUM_CORES
+#from .globals import NUM_CORES
 
 class TrainDataset(Dataset):
     """

@@ -20,7 +20,6 @@ from torch import set_num_threads
 from .server_utils import global_evaluate, log_fit_metrics, log_eval_metrics, fit_config
 from ..globals import WEIGHTS, NUM_CLIENTS, LOGS_PATH, NUM_CORES
 
-set_num_threads(NUM_CORES)
 
 class Aggregation(FedAvg):
     """
