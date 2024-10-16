@@ -14,7 +14,7 @@ from typing import List, Dict, Optional, Tuple
 from pandas import DataFrame
 from flwr.common import NDArrays, Scalar
 from ..globals import LOGS_PATH, BATCH_SIZE, GLOBALMODEL
-from ..inference import test_model
+from ..learning_kit.inference import test_model
 from ..dataformat import load_test_data
 
 def log_fit_metrics(metrics: List[Tuple[int, Dict[str, float]]]) -> Dict[str, float]:
@@ -33,13 +33,13 @@ def log_fit_metrics(metrics: List[Tuple[int, Dict[str, float]]]) -> Dict[str, fl
     train_accuracy = sum(n * m['Accuracy'] for n, m in metrics) / avg_len
     train_precision = sum(n * m['Precision'] for n, m in metrics) / avg_len
     train_recall = sum(n * m['Recall'] for n, m in metrics) / avg_len
-    train_f1 = sum(n * m['F1'] for n, m in metrics) / avg_len
+    train_f1 = sum(n * m['F-measure'] for n, m in metrics) / avg_len
     train_fpr = sum(n * m['FPR'] for n, m in metrics) / avg_len
-    train_loss = sum(n * m['Loss'] for n, m in metrics) / avg_len
+    train_loss = sum(n * m['BCELoss'] for n, m in metrics) / avg_len
 
     # Save training logs as a CSV file
     metrics_list = [train_accuracy, train_precision, train_recall, train_f1, train_fpr, train_loss]
-    metrics_cols = ["Accuracy", "Precision", "Recall", "F1", "FPR", "Loss"]
+    metrics_cols = ["Accuracy", "Precision", "Recall", "F-measure", "FPR", "BCELoss"]
 
 
 
@@ -49,7 +49,7 @@ def log_fit_metrics(metrics: List[Tuple[int, Dict[str, float]]]) -> Dict[str, fl
     else:
         DataFrame([metrics_list], columns=metrics_cols).to_csv(logs_path, index=False, mode='w')
         
-    loss = "{:.3e}".format(train_loss)
+    loss = "{:.4e}".format(train_loss)
     accuracy = "{:.4f} %".format(train_accuracy * 100)
     
     # Print distributed training metrics
@@ -58,9 +58,9 @@ def log_fit_metrics(metrics: List[Tuple[int, Dict[str, float]]]) -> Dict[str, fl
         "Accuracy": train_accuracy,
         "Precision": train_precision,
         "Recall": train_recall,
-        "F1": train_f1,
+        "F-measure": train_f1,
         "FPR": train_fpr,
-        "Loss": train_loss,
+        "BCELoss": train_loss,
     }
 
 def log_eval_metrics(metrics: List[Tuple[int, Dict[str, float]]]) -> Dict[str, float]:
@@ -79,13 +79,13 @@ def log_eval_metrics(metrics: List[Tuple[int, Dict[str, float]]]) -> Dict[str, f
     valid_accuracy = sum(n * m['Accuracy'] for n, m in metrics) / avg_len
     valid_precision = sum(n * m['Precision'] for n, m in metrics) / avg_len
     valid_recall = sum(n * m['Recall'] for n, m in metrics) / avg_len
-    valid_f1 = sum(n * m['F1'] for n, m in metrics) / avg_len
+    valid_f1 = sum(n * m['F-measure'] for n, m in metrics) / avg_len
     valid_fpr = sum(n * m['FPR'] for n, m in metrics) / avg_len
-    valid_loss = sum(n * m['Loss'] for n, m in metrics) / avg_len
+    valid_loss = sum(n * m['BCELoss'] for n, m in metrics) / avg_len
 
     # Save validation logs as a CSV file
     metrics_list = [valid_accuracy, valid_precision, valid_recall, valid_f1, valid_fpr, valid_loss]
-    metrics_cols = ["Accuracy", "Precision", "Recall", "F1", "FPR", "Loss"]
+    metrics_cols = ["Accuracy", "Precision", "Recall", "F-measure", "FPR", "BCELoss"]
     
     logs_path = join(LOGS_PATH, "valid_logs.csv")
     if "valid_logs.csv" in listdir(LOGS_PATH):
@@ -93,7 +93,7 @@ def log_eval_metrics(metrics: List[Tuple[int, Dict[str, float]]]) -> Dict[str, f
     else:
         DataFrame([metrics_list], columns=metrics_cols).to_csv(logs_path, index=False, mode='w')
     
-    loss = "{:.3e}".format(valid_loss)
+    loss = "{:.4e}".format(valid_loss)
     accuracy = "{:.4f} %".format(valid_accuracy * 100)
     
     # Print distributed validation metrics
@@ -102,9 +102,9 @@ def log_eval_metrics(metrics: List[Tuple[int, Dict[str, float]]]) -> Dict[str, f
         "Accuracy": valid_accuracy,
         "Precision": valid_precision,
         "Recall": valid_recall,
-        "F1": valid_f1,
+        "F-measure": valid_f1,
         "FPR": valid_fpr,
-        "Loss": valid_loss,
+        "BCELoss": valid_loss,
     }
 
 def global_evaluate(X: NDArrays, y: NDArrays):
@@ -124,24 +124,24 @@ def global_evaluate(X: NDArrays, y: NDArrays):
         nonlocal X, y
         test_loader = load_test_data(data=(X, y), batch_size=BATCH_SIZE)
         GLOBALMODEL.set_parameters(parameters)
-        log_entry = test_model(test_loader)
+        metrics_dict = test_model(test_loader)
         
         msg = f"Round: {server_round}" if server_round > 0 else "Initial state"
         print("\n" + msg)
         
-        loss = "{:.3e}".format(log_entry['Loss'])
-        accuracy = "{:.4f} %".format(log_entry['Accuracy'] * 100)
+        loss = "{:.4e}".format(metrics_dict['BCELoss'])
+        accuracy = "{:.4f} %".format(metrics_dict['Accuracy'] * 100)
         
         # Print centralized testing metrics
         print(f"Test performance of global model: Loss: {loss} | Accuracy: {accuracy}")
             
         logs_path = join(LOGS_PATH, "test_logs.csv")
         if "test_logs.csv" in listdir(LOGS_PATH):
-            DataFrame([log_entry]).to_csv(logs_path, header=False, index=False, mode='a')
+            DataFrame([metrics_dict]).to_csv(logs_path, header=False, index=False, mode='a')
         else:
-            DataFrame([log_entry]).to_csv(logs_path, index=False, mode='w') 
+            DataFrame([metrics_dict]).to_csv(logs_path, index=False, mode='w') 
                 
-        return log_entry['Loss'], {"Accuracy": log_entry['Accuracy']}
+        return metrics_dict['BCELoss'], {"Accuracy": metrics_dict['Accuracy']}
     
     return evaluate
 
