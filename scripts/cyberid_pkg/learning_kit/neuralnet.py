@@ -7,7 +7,6 @@ including methods to get and set model parameters.
 
 By @Ouadoud
 """
-
 from collections import OrderedDict
 from typing import List
 from torch import set_num_threads, Tensor, tensor
@@ -29,7 +28,6 @@ class NeuralNet(Module):
         
         By @Ouadoud.
         """
-        set_num_threads(num_cores)
         super(NeuralNet, self).__init__()
         self.sequential = Sequential(
             Linear(50, 64),
