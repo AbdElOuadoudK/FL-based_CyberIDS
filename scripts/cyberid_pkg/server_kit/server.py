@@ -15,7 +15,6 @@ from ..globals import WEIGHTS, NUM_CLIENTS, LOGS_PATH, NUM_CORES
 from .aggregation import Aggregation
 from torch import set_num_threads
 
-set_num_threads(NUM_CORES)
 
 class Server_Algorithm:
     """
