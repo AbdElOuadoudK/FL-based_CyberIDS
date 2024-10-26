@@ -30,7 +30,7 @@ from flwr.common import (
 )
 from ..learning_kit.neuralnet import NeuralNet
 from ..learning_kit.inference import train_model, validate_model
-from ..globals import LOGS_PATH, NUM_CORES, DATA_PATH
+from ..globals import NUM_CORES, DATA_PATH, CHKPTS_PATH
 from ..dataformat import load_train_data
 
 
@@ -80,8 +80,8 @@ class TrainingAgent(Client):
         By @Ouadoud.
         """
         parameters = self.__model.get_parameters()
-        logs_path = join(LOGS_PATH, "local_weights.npz")
-        savez(logs_path, *parameters)
+        chkpts_path = join(CHKPTS_PATH, "local_weights.npz")
+        savez(chkpts_path, *parameters)
         parameters = ndarrays_to_parameters(parameters)
         status = Status(code=Code.OK, message="Success")
         return GetParametersRes(status=status, parameters=parameters)
@@ -143,11 +143,11 @@ class TrainingAgent(Client):
     
     def __save_results(self, client_id, metrics, msg):
 
-        logs_path = join(LOGS_PATH, msg)
-        if msg in listdir(LOGS_PATH):
-            DataFrame(metrics).to_csv(logs_path, header=False, index=False, mode='a')
+        chkpts_path = join(CHKPTS_PATH, msg)
+        if msg in listdir(CHKPTS_PATH):
+            DataFrame(metrics).to_csv(chkpts_path, header=False, index=False, mode='a')
         else:
-            DataFrame(metrics).to_csv(logs_path, index=False, mode='w') 
+            DataFrame(metrics).to_csv(chkpts_path, index=False, mode='w') 
 
         
     def __exception_management(self,):

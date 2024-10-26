@@ -18,7 +18,7 @@ from flwr.server.client_proxy import ClientProxy
 from flwr.common.typing import FitRes
 from torch import set_num_threads
 from .server_utils import global_evaluate, log_fit_metrics, log_eval_metrics, fit_config
-from ..globals import WEIGHTS, NUM_CLIENTS, LOGS_PATH, NUM_CORES
+from ..globals import WEIGHTS, NUM_CLIENTS, CHKPTS_PATH, NUM_CORES
 
 
 class Aggregation(FedAvg):
@@ -70,8 +70,8 @@ class Aggregation(FedAvg):
         
         if aggregated_parameters is not None:
             # Save aggregated parameters as numpy arrays
-            logs_path = join(LOGS_PATH, "global_weights.npz")
-            savez(logs_path, *parameters_to_ndarrays(aggregated_parameters))
+            chkpts_path = join(CHKPTS_PATH, "global_weights.npz")
+            savez(chkpts_path, *parameters_to_ndarrays(aggregated_parameters))
         
         return aggregated_parameters, aggregated_metrics
 

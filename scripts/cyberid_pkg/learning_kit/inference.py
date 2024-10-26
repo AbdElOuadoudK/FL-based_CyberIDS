@@ -15,7 +15,7 @@ from torch.optim import SGD
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from os.path import join
 from pandas import DataFrame
-from ..globals import GLOBALMODEL, DEVICE, LOGS_PATH, NUM_CORES
+from ..globals import GLOBALMODEL, DEVICE, NUM_CORES
 #from ray import logger as ray_logger
 from logging import getLogger
 from .metrics import loss_function, confusion_matrix, get_metrics
