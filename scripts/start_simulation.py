@@ -1,6 +1,7 @@
-from cyberid_pkg.globals import DATA_PATH, LOGS_PATH, NUM_CLIENTS, WEIGHTS, NUM_CORES, NUM_ROUNDS, NUM_EPOCHS
+from cyberid_pkg.globals import DATA_PATH, LOGS_PATH, NUM_CLIENTS, WEIGHTS, NUM_CORES, NUM_ROUNDS, NUM_EPOCHS, MEMORY_AMOUNT, BATCH_SIZE
 from pandas import read_feather
 from os.path import join
+from cyberid_pkg import load_train_data
 from cyberid_pkg.client_kit import generate_client_fn
 from cyberid_pkg.server_kit import Aggregation
 from flwr.server import ServerConfig
@@ -20,7 +21,7 @@ def run(logs=True, display=True):
 
     data_path = join(DATA_PATH, "test.feather")
     test_data = read_feather(data_path)
-    test_data = test_data[:512]
+    test_data = test_data[:50000]
     X = test_data.drop(['intrusion'], axis=1)
     y = test_data[['intrusion']]
     
@@ -29,30 +30,45 @@ def run(logs=True, display=True):
                                        X=X, y=y,
                                        num_rounds=NUM_ROUNDS
                                       )
-
+    
     data_path = join(DATA_PATH, "train.feather")
     train_data = read_feather(data_path)
+
+
     
-    client_function = generate_client_fn(train_data, 
-                                         distribution=None, 
+ 
+    
+    train_loaders_ = list()
+    valid_loaders_ = list()
+    distributions_ = None
+    sparse_y_ = None  
+    
+    train_loaders, valid_loaders = load_train_data(data=(train_data.drop(['intrusion'], axis=1), train_data[['intrusion']]), 
+                                                   num_clients=NUM_CLIENTS, 
+                                                   size=1/10, 
+                                                   valid_rate=.45, 
+                                                   batch_size=BATCH_SIZE)
+    
+    client_function = generate_client_fn(train_loaders, valid_loaders, 
                                          epochs= NUM_EPOCHS
                                         )
-
     
     server_config = ServerConfig(num_rounds=NUM_ROUNDS)
     
-    client_resources = {"num_cpus": NUM_CORES, 
-                        "num_gpus": 0,
-                       }
-           
+    client_resources = {
+        "num_cpus": NUM_CORES,
+        "num_gpus": 0,
+        #"memory": MEMORY_AMOUNT, # GB
+    }
+    
     history = start_simulation(client_fn=client_function,
                                num_clients=NUM_CLIENTS,
                                #server= server_algorithm,
                                client_resources=client_resources,
                                config=server_config,
                                strategy=aggregation_strategy,
+                               ray_init_args={"runtime_env": {"heartbeat-interval": 5, "heartbeat-timeout": 30}}
                               )
-
 
 if __name__ == "start_simulation" :
     run()
@@ -65,4 +81,3 @@ simulation_configs = {client_function,
                      }
 
 log_configs(simulation_configs)
-s
