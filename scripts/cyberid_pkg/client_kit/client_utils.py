@@ -1,6 +1,5 @@
 import os
 from ..globals import LOGS_PATH, DATA_PATH, BATCH_SIZE
-from ..dataformat import load_train_data
 from .client import TrainingAgent
 from logging import Formatter, FileHandler, DEBUG, getLogger
 from flwr.common.logger import logger
@@ -15,17 +14,10 @@ formatter = Formatter(f'%(name)s | %(filename)s | %(asctime)s | %(thread)d (clie
 file_handler.setFormatter(formatter)
 ray_logger.addHandler(file_handler)
 
-def generate_client_fn(train_data, distribution: dict = None, epochs: int = 1):
+def generate_client_fn(train_loaders, valid_loaders, distribution: dict = None, epochs: int = 1):
 
     def client_fn(cid:str):
-        train_loader, valid_loader = load_train_data(data = (train_data.drop(['intrusion'], axis=1), train_data[['intrusion']]),
-                                                     size = 1/10000, ### add int(cid) generation logic...
-                                                     valid_rate = .45,
-                                                     batch_size = BATCH_SIZE,
-                                                     distribution = distribution,
-                                                     sparse_y = False
-                                                    )
         
-        return TrainingAgent(cid, train_loader, valid_loader, distribution, epochs)
+        return TrainingAgent(cid, train_loaders[int(cid)], valid_loaders[int(cid)], distribution, epochs)
 
     return client_fn
