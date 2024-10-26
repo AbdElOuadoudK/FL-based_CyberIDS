@@ -23,7 +23,6 @@ DEVICE = device("cuda" if is_available() else "cpu")
 
 # Number of CPU cores to use for threading
 NUM_CORES = .5
-
 # Initialize the global neural network model and move it to the specified device
 GLOBALMODEL = NeuralNet(NUM_CORES).to(DEVICE)
 
@@ -31,6 +30,7 @@ GLOBALMODEL = NeuralNet(NUM_CORES).to(DEVICE)
 main_path = dirname(getcwd())
 DATA_PATH = join(main_path, "data")
 LOGS_PATH = join(main_path, "logs")
+CHKPTS_PATH = join(main_path, "checkpoints")
 
 try:
     # Load global model weights if available
@@ -50,3 +50,5 @@ LOAD_TRAIN_DATA_KWARGS = {
     "batch_size": 1024,
     "sparse_y": True
 }
+
+MEMORY_AMOUNT = round(2.001 * (2**30))
