@@ -1,4 +1,4 @@
-# Vertical Federated Learning-based Architecture for Cyber Intrusion Detection
+# Federated Learning-based Architecture for Cyber Intrusion Detection
 ## Description
 <p align="justify">The research project focuses on developing a Vertical Federated Learning (FL)-based architecture for Cyber Intrusion Detection. This innovative approach leverages federated learning to enhance cybersecurity measures without compromising data privacy </p>
 <p align="justify">This repository contains the research and all the necessary requirements for the implementation of the architecture. The project explores the use of federated learning techniques to enhance the security and privacy of systems by preserving data locally on devices.</p>
